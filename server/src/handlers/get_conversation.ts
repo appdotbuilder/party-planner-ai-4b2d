@@ -1,9 +1,27 @@
 
+import { db } from '../db';
+import { conversationsTable } from '../db/schema';
 import { type Conversation } from '../schema';
+import { eq } from 'drizzle-orm';
 
-export async function getConversation(conversationId: string): Promise<Conversation | null> {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is fetching a conversation by ID from the database.
-  // Should return null if conversation doesn't exist.
-  return Promise.resolve(null);
-}
+export const getConversation = async (conversationId: string): Promise<Conversation | null> => {
+  try {
+    const results = await db.select()
+      .from(conversationsTable)
+      .where(eq(conversationsTable.id, conversationId))
+      .execute();
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    const conversation = results[0];
+    return {
+      ...conversation,
+      budget: conversation.budget ? parseFloat(conversation.budget) : null // Convert numeric field
+    };
+  } catch (error) {
+    console.error('Get conversation failed:', error);
+    throw error;
+  }
+};
